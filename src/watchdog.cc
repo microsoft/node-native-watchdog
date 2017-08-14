@@ -6,6 +6,7 @@
 #include <node.h>
 #include <uv.h>
 #include <time.h>
+#include <stdlib.h>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
 #else
