@@ -5,9 +5,12 @@
 
 #include <node.h>
 #include <uv.h>
-#include <unistd.h>
 #include <time.h>
-#include <v8-inspector.h>
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#else
+#include <unistd.h>
+#endif
 
 using namespace v8;
 
@@ -75,7 +78,11 @@ void monitor(void *arg)
             isolate->RequestInterrupt(monitor_stop, NULL);
         }
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+        Sleep(1);
+#else
         sleep(1);
+#endif
     }
 }
 
