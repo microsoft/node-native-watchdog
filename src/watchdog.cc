@@ -54,7 +54,6 @@ void write_last_ping_time(unsigned long long value)
 
 void monitor_stop(Isolate *isolate, void *data)
 {
-    fprintf(stderr, "The module native-watchdog has detected that the event loop is unresponsive.\n");
     fprintf(stderr, "Here is the JavaScript stack trace:\n");
     fprintf(stderr, "======================================native-watchdog======================================\n");
     Message::PrintCurrentStackTrace(isolate, stderr);
@@ -68,19 +67,38 @@ void monitor_stop(Isolate *isolate, void *data)
 
 void monitor(void *arg)
 {
+    unsigned long long last_watchdog_time = epoch_millis();
     while (true)
     {
-        unsigned long long last_ping_time = read_last_ping_time();
-        unsigned long long delta = epoch_millis() - last_ping_time;
+        unsigned long long now = epoch_millis();
+        long long delta_watchdog_time = now - last_watchdog_time;
+        last_watchdog_time = now;
 
-        if (delta > timeout)
-        {
-            // More time than allowed via `timeout` has passed since we've been pinged
-            isolate->RequestInterrupt(monitor_stop, NULL);
+        if (delta_watchdog_time > 5000) {
+
+            // The last sleep call took more than 5s => indication of machine sleeping
+            // and now waking up from sleep...
+
+            // Pretend we have received a ping and we'll terminate the process if
+            // we don't get another ping soon...
+            write_last_ping_time(epoch_millis());
+
+        } else {
+
+            unsigned long long last_ping_time = read_last_ping_time();
+            long long delta_ping_time = now - last_ping_time;
+
+            if (delta_ping_time > timeout)
+            {
+                // More time than allowed via `timeout` has passed since we've been pinged
+                fprintf(stderr, "The module native-watchdog has detected that the event loop is unresponsive (%lld ms).\n", delta_ping_time);
+                isolate->RequestInterrupt(monitor_stop, NULL);
+            }
+
         }
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
-        Sleep(1);
+        Sleep(1000);
 #else
         sleep(1);
 #endif
