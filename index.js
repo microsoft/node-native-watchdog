@@ -18,3 +18,7 @@ exports.start = function(timeout) {
         watchdog.ping();
     }, 1000);
 };
+
+exports.exit = function(code) {
+    watchdog.exit(code || 0);
+}

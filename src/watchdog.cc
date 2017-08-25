@@ -121,10 +121,16 @@ void _Ping(const FunctionCallbackInfo<Value> &args)
     args.GetReturnValue().SetUndefined();
 }
 
+void _Exit(const FunctionCallbackInfo<Value> &args)
+{
+    exit(args[0]->Int32Value());
+}
+
 void init(Local<Object> exports)
 {
     NODE_SET_METHOD(exports, "start", _Start);
     NODE_SET_METHOD(exports, "ping", _Ping);
+    NODE_SET_METHOD(exports, "exit", _Exit);
 }
 
 NODE_MODULE(addon, init)
