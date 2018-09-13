@@ -23,7 +23,7 @@ bool w_processIsRunning(long pid)
     CloseHandle(process);
     return (ret == WAIT_TIMEOUT);
 #else
-    return (kill(pid, 0) != 0);
+    return (kill(pid, 0) == 0);
 #endif
 }
 
