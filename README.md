@@ -5,11 +5,9 @@
 
 
 # Watchdog node module
-Kills the current process when the JavaScript event loop is busy for more than a configurable amount of time. e.g. an accidental while true loop.
+Kills the current process when another process is no longer running. This helps when the JavaScript event loop might be busy and never recovering e.g. an accidental while true loop.
 
-This is implemented by launching a separate thread from C++ which periodically checks if an interval timer installed in the JavaScript event loop is fired.
-
-> Note: The node module does not distinguish a never-completing operation from a long running operation that will eventually complete. If the event loop appears to be stuck and does not fire timers for a configurable period of time, the node module will terminate the process.
+This is implemented by launching a separate thread from C++ which periodically checks if the given process is still running. Typically, one would watch the parent process id. The watched process is checked every 1s and if it is no longer running, the current process will exit after 6 seconds with the exit code 87.
 
 ## Installing
 
@@ -22,24 +20,7 @@ npm install native-watchdog
 ```javascript
 var watchdog = require('native-watchdog');
 
-// Configures the module to kill the current process if the event loop
-// is unresponsive for more than 5s.
-watchdog.start(5000);
-```
-
-The module will print to `stderr` the JavaScript call stack at the time it detected the JavaScript event loop to be unresponsive and will exit the process with code 87 (unused by node.js):
-```
-The module native-watchdog has detected that the event loop is unresponsive.
-Here is the JavaScript stack trace:
-======================================native-watchdog======================================
-bad (/Users/alex/src/node-native-watchdog/test/test.js:16:13)
-good (/Users/alex/src/node-native-watchdog/test/test.js:21:5)
-Timeout._onTimeout (/Users/alex/src/node-native-watchdog/test/test.js:24:5)
-ontimeout (timers.js:386:14)
-tryOnTimeout (timers.js:250:5)
-Timer.listOnTimeout (timers.js:214:5)
-======================================native-watchdog======================================
-The module native-watchdog will now terminate the process with exit code 87.
+watchdog.start(pid);
 ```
 
 ## Developing
