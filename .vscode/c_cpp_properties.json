@@ -25,7 +25,11 @@
                 ],
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": ""
-            }
+            },
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ]
         },
         {
             "name": "Linux",
@@ -53,7 +57,7 @@
                 "C:/Program Files (x86)/Windows Kits/8.1/Include/um",
                 "C:/Program Files (x86)/Windows Kits/8.1/Include/shared",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.10240.0/ucrt",
-                "C:/Users/alex/.node-gyp/7.10.0/include/node",
+                "C:/Users/alex/.node-gyp/8.9.4/include/node",
                 "${workspaceRoot}"
             ],
             "defines": [
@@ -71,5 +75,5 @@
             }
         }
     ],
-    "version": 2
+    "version": 4
 }

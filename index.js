@@ -7,17 +7,16 @@ var watchdog = require('./build/Release/watchdog');
 
 var hasStarted = false;
 
-exports.start = function(timeout) {
+exports.start = function(pid) {
+    if (typeof pid !== 'number' || Math.round(pid) !== pid) {
+        throw new Error(`Expected integer pid!`);
+    }
     if (hasStarted) {
-        return;
+        throw new Error(`Can only monitor a single process!`);
     }
     hasStarted = true;
-    watchdog.start(timeout);
-    setInterval(function() {
-        // let the C++ side know that the event loop is alive.
-        watchdog.ping();
-    }, 1000);
-};
+    watchdog.start(pid);
+}
 
 exports.exit = function(code) {
     watchdog.exit(code || 0);
