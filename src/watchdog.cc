@@ -3,21 +3,37 @@
  *  Licensed under the MIT License. See LICENSE in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-#include <node.h>
-#include <uv.h>
+#include "common.h"
 #include <time.h>
 #include <stdlib.h>
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
-#else
-#include <unistd.h>
+#if defined(_WIN32) || defined(__WIN32)
+#ifndef WIN32
+#define WIN32
+#endif
 #endif
 
-using namespace v8;
+#if !defined(WIN32)
+#include <unistd.h>
+#include <signal.h>
+#else
+#include <windows.h>
+#endif
+
+namespace
+{
+
+using WorkerInfo = struct
+{
+    int64_t parent_pid = 0;
+    napi_async_work request = nullptr;
+};
+
+WorkerInfo worker_info;
 
 bool w_processIsRunning(long pid)
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#if defined(WIN32)
     HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
     DWORD ret = WaitForSingleObject(process, 0);
     CloseHandle(process);
@@ -29,44 +45,113 @@ bool w_processIsRunning(long pid)
 
 void w_sleep(int seconds)
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32)
+#if defined(WIN32)
     Sleep(seconds * 1000);
 #else
     sleep(seconds);
 #endif
 }
 
-long w_parentpid = 0; // id of the parent process
-uv_thread_t w_monitor_thread_id; // id of the monitor thread
-
-void w_monitor(void *arg)
+void Execute(napi_env env, void *data)
 {
+    auto *info = static_cast<WorkerInfo *>(data);
+
+    if (info != &worker_info)
+    {
+        return;
+    }
+
     while (true)
     {
-        if (!w_processIsRunning(w_parentpid))
+        if (!w_processIsRunning(info->parent_pid))
         {
-            w_sleep(5);
-            exit(87);
+            return;
         }
         w_sleep(1);
     }
 }
 
-void _Start(const FunctionCallbackInfo<Value> &args)
+void Complete(napi_env env, napi_status status, void *data)
 {
-    w_parentpid = (long)Local<Number>::Cast(args[0])->Value();
-    uv_thread_create(&w_monitor_thread_id, w_monitor, NULL);
+    auto *info = static_cast<WorkerInfo *>(data);
+
+    if (info != &worker_info)
+    {
+        napi_throw_type_error(env, nullptr, "Wrong data parameter to Complete.");
+        return;
+    }
+
+    if (status != napi_ok)
+    {
+        napi_throw_type_error(env, nullptr, "Execute callback failed.");
+        return;
+    }
+
+    NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, info->request));
+
+    exit(87);
 }
 
-void _Exit(const FunctionCallbackInfo<Value> &args)
+} // namespace
+
+napi_value Start(napi_env env, napi_callback_info info)
 {
-    exit(args[0]->Int32Value());
+    size_t argc = 1;
+    napi_value argv[1];
+    NAPI_CALL(env,
+              napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, expected 1.");
+
+    napi_valuetype t;
+    NAPI_CALL(env, napi_typeof(env, argv[0], &t));
+    NAPI_ASSERT(env, t == napi_number,
+                "Wrong argument, number expected.");
+
+    NAPI_CALL(env, napi_get_value_int64(env, argv[0], &worker_info.parent_pid));
+
+    napi_value resource_name;
+    NAPI_CALL(env, napi_create_string_utf8(
+                       env, "StartWorkerProcess", NAPI_AUTO_LENGTH, &resource_name));
+    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource_name,
+                                          Execute, Complete, &worker_info, &worker_info.request));
+    NAPI_CALL(env, napi_queue_async_work(env, worker_info.request));
+
+    return nullptr;
 }
 
-void init(Local<Object> exports)
+napi_value Exit(napi_env env, napi_callback_info info)
 {
-    NODE_SET_METHOD(exports, "start", _Start);
-    NODE_SET_METHOD(exports, "exit", _Exit);
+    size_t argc = 1;
+    napi_value argv[1];
+    NAPI_CALL(env,
+              napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr));
+
+    NAPI_ASSERT(env, argc == 1, "Wrong number of arguments, expected 1.");
+
+    napi_valuetype t;
+    NAPI_CALL(env, napi_typeof(env, argv[0], &t));
+    NAPI_ASSERT(env, t == napi_number,
+                "Wrong argument, number expected.");
+
+    int32_t code;
+    NAPI_CALL(env, napi_get_value_int32(env, argv[0], &code));
+
+    exit(code);
+
+    return nullptr;
 }
 
-NODE_MODULE(addon, init)
+napi_value Init(napi_env env, napi_value exports)
+{
+    napi_property_descriptor properties[] = {
+        DECLARE_NAPI_PROPERTY("start", Start),
+        DECLARE_NAPI_PROPERTY("exit", Exit)};
+
+    NAPI_CALL(env, napi_define_properties(
+                       env, exports, sizeof(properties) / sizeof(*properties), properties));
+
+    return exports;
+}
+
+NAPI_MODULE(NODE_GYP_MODULE_NAME, Init);
