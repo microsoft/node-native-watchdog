@@ -65,31 +65,13 @@ void Execute(napi_env env, void *data)
     {
         if (!w_processIsRunning(info->parent_pid))
         {
+            NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, info->request));
+            w_sleep(5);
+            exit(87);
             return;
         }
         w_sleep(1);
     }
-}
-
-void Complete(napi_env env, napi_status status, void *data)
-{
-    auto *info = static_cast<WorkerInfo *>(data);
-
-    if (info != &worker_info)
-    {
-        napi_throw_type_error(env, nullptr, "Wrong data parameter to Complete.");
-        return;
-    }
-
-    if (status != napi_ok)
-    {
-        napi_throw_type_error(env, nullptr, "Execute callback failed.");
-        return;
-    }
-
-    NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, info->request));
-
-    exit(87);
 }
 
 } // namespace
@@ -114,7 +96,7 @@ napi_value Start(napi_env env, napi_callback_info info)
     NAPI_CALL(env, napi_create_string_utf8(
                        env, "StartWorkerProcess", NAPI_AUTO_LENGTH, &resource_name));
     NAPI_CALL(env, napi_create_async_work(env, nullptr, resource_name,
-                                          Execute, Complete, &worker_info, &worker_info.request));
+                                          Execute, nullptr, &worker_info, &worker_info.request));
     NAPI_CALL(env, napi_queue_async_work(env, worker_info.request));
 
     return nullptr;
