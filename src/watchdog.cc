@@ -65,7 +65,6 @@ void Execute(napi_env env, void *data)
     {
         if (!w_processIsRunning(info->parent_pid))
         {
-            NAPI_CALL_RETURN_VOID(env, napi_delete_async_work(env, info->request));
             w_sleep(5);
             exit(87);
             return;
