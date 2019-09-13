@@ -6,6 +6,7 @@
 #include "common.h"
 #include <time.h>
 #include <stdlib.h>
+#include <uv.h>
 
 #if defined(_WIN32) || defined(__WIN32)
 #ifndef WIN32
@@ -23,13 +24,8 @@
 namespace
 {
 
-using WorkerInfo = struct
-{
-    int64_t parent_pid = 0;
-    napi_async_work request = nullptr;
-};
-
-WorkerInfo worker_info;
+int64_t w_parentpid = 0; // id of the parent process
+uv_thread_t w_monitor_thread_id; // id of the monitor thread
 
 bool w_processIsRunning(long pid)
 {
@@ -52,22 +48,14 @@ void w_sleep(int seconds)
 #endif
 }
 
-void Execute(napi_env env, void *data)
+void w_monitor(void *arg)
 {
-    auto *info = static_cast<WorkerInfo *>(data);
-
-    if (info != &worker_info)
-    {
-        return;
-    }
-
     while (true)
     {
-        if (!w_processIsRunning(info->parent_pid))
+        if (!w_processIsRunning(w_parentpid))
         {
             w_sleep(5);
             exit(87);
-            return;
         }
         w_sleep(1);
     }
@@ -89,14 +77,9 @@ napi_value Start(napi_env env, napi_callback_info info)
     NAPI_ASSERT(env, t == napi_number,
                 "Wrong argument, number expected.");
 
-    NAPI_CALL(env, napi_get_value_int64(env, argv[0], &worker_info.parent_pid));
+    NAPI_CALL(env, napi_get_value_int64(env, argv[0], &w_parentpid));
 
-    napi_value resource_name;
-    NAPI_CALL(env, napi_create_string_utf8(
-                       env, "StartWorkerProcess", NAPI_AUTO_LENGTH, &resource_name));
-    NAPI_CALL(env, napi_create_async_work(env, nullptr, resource_name,
-                                          Execute, nullptr, &worker_info, &worker_info.request));
-    NAPI_CALL(env, napi_queue_async_work(env, worker_info.request));
+    uv_thread_create(&w_monitor_thread_id, w_monitor, NULL);
 
     return nullptr;
 }
