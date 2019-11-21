@@ -3,6 +3,7 @@
   "version": "1.2.0",
   "description": "A native module that kills the current process if the event loop is unresponsive",
   "main": "index.js",
+  "typings": "index.d.ts",
   "scripts": {
     "test": "node test/test.js"
   },
