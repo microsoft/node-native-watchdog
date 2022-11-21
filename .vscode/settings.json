@@ -4,5 +4,9 @@
   "editor.insertSpaces": true,
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "git.branchProtection": ["main", "release/*"],
+  "git.branchProtectionPrompt": "alwaysCommitToNewBranch",
+  "git.branchRandomName.enable": true
+
 }
