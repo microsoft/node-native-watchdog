@@ -1,6 +1,6 @@
 {
   "name": "native-watchdog",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "A native module that kills the current process if the event loop is unresponsive",
   "main": "index.js",
   "typings": "index.d.ts",
