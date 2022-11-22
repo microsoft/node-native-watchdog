@@ -4,3 +4,4 @@
 /.gitignore
 /.npmignore
 /npm-debug.log
+/pipeline.yml
