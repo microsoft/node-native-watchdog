@@ -17,6 +17,7 @@
 #if !defined(WIN32)
 #include <unistd.h>
 #include <signal.h>
+#include <sys/types.h>
 #else
 #include <windows.h>
 #endif
@@ -27,15 +28,15 @@ namespace
 int64_t w_parentpid = 0; // id of the parent process
 uv_thread_t w_monitor_thread_id; // id of the monitor thread
 
-bool w_processIsRunning(long pid)
+bool w_processIsRunning(int64_t pid)
 {
 #if defined(WIN32)
-    HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
+    HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, static_cast<DWORD>(pid));
     DWORD ret = WaitForSingleObject(process, 0);
     CloseHandle(process);
     return (ret == WAIT_TIMEOUT);
 #else
-    return (kill(pid, 0) == 0);
+    return (kill(static_cast<pid_t>(pid), 0) == 0);
 #endif
 }
 
