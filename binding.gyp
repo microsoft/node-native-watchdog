@@ -3,13 +3,15 @@
     {
       "target_name": "watchdog",
       "sources": [ "src/watchdog.cc" ],
+      'msvs_configuration_attributes': {
+        'SpectreMitigation': 'Spectre'
+      },
       'msvs_settings': {
         'VCCLCompilerTool': {
           'AdditionalOptions': [
-            '/Qspectre',
             '/guard:cf',
-            '/w34244',
-            '/w34267',
+            '/we4244',
+            '/we4267',
             '/ZH:SHA_256'
           ]
         },
