@@ -34,13 +34,13 @@ extends:
         testPlatforms:
           - name: Linux
             nodeVersions:
-              - 16.x
+              - 18.17.x
           - name: MacOS
             nodeVersions:
-              - 16.x
+              - 18.17.x
           - name: Windows
             nodeVersions:
-              - 16.x
+              - 18.17.x
 
         testSteps:
           - script: npm ci
@@ -48,5 +48,8 @@ extends:
 
           - script: npm test
             displayName: Test
+
+        apiScanSoftwareName: "vscode-native-watchdog"
+        apiScanSoftwareVersion: "1.4"
 
         publishPackage: ${{ parameters.publishPackage }}
