@@ -2,25 +2,31 @@ name: CI
 
 on: [push, pull_request]
 
+permissions: {}
+
 jobs:
   windows:
     name: Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
         with:
-          node-version: 18
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: npm test
 
   linux:
     name: Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
         with:
-          node-version: 18
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: npm ci
       - run: npm test
 
@@ -28,9 +34,11 @@ jobs:
     name: macOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v4
         with:
-          node-version: 18
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - run: npm ci
       - run: npm test
