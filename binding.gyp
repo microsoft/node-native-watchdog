@@ -3,6 +3,7 @@
     {
       "target_name": "watchdog",
       "sources": [ "src/watchdog.cc" ],
+      "cflags": ["-O2", "-D_FORTIFY_SOURCE=2"],
       'msvs_configuration_attributes': {
         'SpectreMitigation': 'Spectre'
       },
