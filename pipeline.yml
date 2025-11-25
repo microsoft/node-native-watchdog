@@ -49,7 +49,7 @@ extends:
           - script: npm test
             displayName: Test
 
-        apiScanSoftwareName: "vscode-native-watchdog"
-        apiScanSoftwareVersion: "1.4"
+        apiScanSoftwareName: vscode-native-watchdog
+        apiScanSoftwareVersion: '1.4'
 
         publishPackage: ${{ parameters.publishPackage }}
