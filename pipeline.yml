@@ -25,7 +25,7 @@ extends:
   template: azure-pipelines/npm-package/pipeline.yml@templates
   parameters:
     npmPackages:
-      - name: node-native-watchdog
+      - name: native-watchdog
 
         buildSteps:
           - script: npm ci
@@ -50,6 +50,12 @@ extends:
             displayName: Test
 
         apiScanSoftwareName: vscode-native-watchdog
-        apiScanSoftwareVersion: '1.4'
+        apiScanSoftwareVersion: "1.4"
 
         publishPackage: ${{ parameters.publishPackage }}
+
+    # The old TSA config has been retired, so we're forced to use a new one
+    # to continue uploading scan results.
+    tsa:
+      config:
+        codebaseName: vscode-native-watchdog
