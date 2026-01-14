@@ -25,7 +25,7 @@ extends:
   template: azure-pipelines/npm-package/pipeline.yml@templates
   parameters:
     npmPackages:
-      - name: native-watchdog
+      - name: node-native-watchdog
 
         buildSteps:
           - script: npm ci

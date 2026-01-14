@@ -1,5 +1,5 @@
 {
-  "name": "native-watchdog",
+  "name": "@vscode/native-watchdog",
   "version": "1.4.6",
   "description": "A native module that kills the current process if the event loop is unresponsive",
   "main": "index.js",
