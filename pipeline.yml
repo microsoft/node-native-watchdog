@@ -28,7 +28,7 @@ extends:
       - name: native-watchdog
 
         buildSteps:
-          - script: npm ci
+          - script: npm ci --verbose
             displayName: Install dependencies
 
         testPlatforms:
