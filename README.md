@@ -1,9 +1,3 @@
-
-
-
-
-
-
 # Watchdog node module
 Kills the current process when another process is no longer running. This helps when the JavaScript event loop might be busy and never recovering e.g. an accidental while true loop.
 
